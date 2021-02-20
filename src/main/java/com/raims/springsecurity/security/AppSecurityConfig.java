@@ -3,7 +3,6 @@ package com.raims.springsecurity.security;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,6 +12,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import java.util.concurrent.TimeUnit;
 
 import static com.raims.springsecurity.security.AppUserRole.*;
 
@@ -24,23 +26,35 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
 
-    private static final String MANAGEMENT_PATH = "/management/**";
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/", "/registration").permitAll()
-//                .antMatchers("/student/**").hasRole(STUDENT.name())
-//                .antMatchers(HttpMethod.DELETE, MANAGEMENT_PATH).hasAuthority(AppUserPermission.COURSE_WRITE.getPermission())
-//                .antMatchers(HttpMethod.POST, MANAGEMENT_PATH).hasAuthority(AppUserPermission.COURSE_WRITE.getPermission())
-//                .antMatchers(HttpMethod.PUT, MANAGEMENT_PATH).hasAuthority(AppUserPermission.COURSE_WRITE.getPermission())
-//                .antMatchers(HttpMethod.GET, MANAGEMENT_PATH).hasAnyRole(ADMIN.name(), NEW_ADMIN.name())
                 .anyRequest()
                 .authenticated()
                 .and()
-                .httpBasic();
+                .formLogin()
+                    .loginPage("/login")
+                    .permitAll()
+                    .defaultSuccessUrl("/courses", true)
+                    .usernameParameter("username")
+                    .passwordParameter("password")
+                .and()
+                    .rememberMe()
+                    .tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(21))
+                    .key("verysecurekey")
+                    .rememberMeParameter("remember-me")
+                .and()
+                .logout()
+                    .logoutUrl("/logout")
+                    .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
+                    .clearAuthentication(true)
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID", "remember-me")
+                    .logoutSuccessUrl("/login");
+
     }
 
     @Override
