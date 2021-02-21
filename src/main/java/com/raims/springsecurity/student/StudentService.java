@@ -2,7 +2,6 @@ package com.raims.springsecurity.student;
 
 import com.raims.springsecurity.exceptions.AppException;
 import lombok.AllArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -18,7 +17,6 @@ import static com.raims.springsecurity.exceptions.ErrorMessage.*;
 public class StudentService {
 
     private final StudentRepository studentRepository;
-    private final BCryptPasswordEncoder bcryptPasswordEncoder;
 
     public StudentDto getStudentById(Integer id) {
         Student student = studentRepository.findById(id).orElseThrow(
@@ -27,13 +25,10 @@ public class StudentService {
         return new StudentDto(student);
     }
 
-    public Integer addStudent(Student student) {
-        checkIfEmailExists(student.getEmail());
+    public void addStudent(Student student) {
         checkIfIsAdult(student.getAge());
         student.setAge(student.getAge());
-        student.setPassword(bcryptPasswordEncoder.encode(student.getPassword()));
         studentRepository.save(student);
-        return student.getId();
     }
 
     private void checkIfIsAdult(Integer age) {
@@ -82,4 +77,5 @@ public class StudentService {
         student.setLastName(studentDto.getLastName());
 
     }
+
 }

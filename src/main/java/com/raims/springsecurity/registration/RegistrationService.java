@@ -1,5 +1,7 @@
 package com.raims.springsecurity.registration;
 
+import com.raims.springsecurity.auth.AuthUser;
+import com.raims.springsecurity.auth.AuthUserService;
 import com.raims.springsecurity.exceptions.AppException;
 import com.raims.springsecurity.security.AppUserRole;
 import com.raims.springsecurity.student.Student;
@@ -19,25 +21,32 @@ import static com.raims.springsecurity.exceptions.ErrorMessage.PASSWORD_INVALID;
 public class RegistrationService {
 
     private final StudentService studentService;
+    private final AuthUserService authUserService;
     private static final String EMAIL_REGEX = "^(.+)@(.+)$";
     private static final String PASSWORD_REGEX = "^(?=.*?[A-Z])(?=.*?[0-9]).{8,}$";
 
 
-    public Integer studentRegister(RegistrationRequest studentRequest) {
-        checkEmailRegex(studentRequest.getEmail());
+    public void userRegistration(RegistrationRequest request, String role) {
+        checkEmailRegex(request.getEmail());
 
-        if (patternTest(PASSWORD_REGEX, studentRequest.getPassword()))
-            throw new AppException(PASSWORD_INVALID, studentRequest.getPassword());
+        if (patternTest(PASSWORD_REGEX, request.getPassword()))
+            throw new AppException(PASSWORD_INVALID, request.getPassword());
 
-        return studentService.addStudent(new Student(
-                        studentRequest.getFirstName(),
-                        studentRequest.getLastName(),
-                        studentRequest.getEmail(),
-                        studentRequest.getPassword(),
-                        AppUserRole.STUDENT,
-                        LocalDate.parse(studentRequest.getDob())
+        authUserService.registerUser(new AuthUser(
+                        request.getPassword(),
+                        request.getEmail(),
+                        AppUserRole.valueOf(role)
                 )
         );
+
+        if (role.equals(AppUserRole.STUDENT.name()))
+            studentService.addStudent(new Student(
+                            request.getFirstName(),
+                            request.getLastName(),
+                            request.getEmail(),
+                            LocalDate.parse(request.getDob())
+                    )
+            );
     }
 
     private void checkEmailRegex(String email) {
@@ -52,6 +61,7 @@ public class RegistrationService {
 
     public void updateStudentById(Integer id, StudentDto studentDto) {
         checkEmailRegex(studentDto.getEmail());
+        authUserService.checkIfEmailExists(studentDto.getEmail());
         studentService.updateStudent(id, studentDto);
     }
 }

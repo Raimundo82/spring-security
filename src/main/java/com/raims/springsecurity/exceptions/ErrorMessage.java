@@ -9,7 +9,11 @@ public enum ErrorMessage {
     EMAIL_ALREADY_REGISTERED("Email %s already registered"),
     EMAIL_INVALID("Email %s is invalid"),
     PASSWORD_INVALID("Password %s is invalid"),
-    STUDENT_IS_NOT_ADULT("Student is under 18 : %d");
+    STUDENT_IS_NOT_ADULT("Student is under 18 : %d"),
+    USER_NOT_FOUND("User with username %s not found"),
+    AUTHENTICATION_ERROR("Authentication error"),
+    TOKEN_INVALID("Token %s invalid");
+
 
     public final String label;
 

@@ -1,10 +1,7 @@
 package com.raims.springsecurity.registration;
 
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "registration")
@@ -14,8 +11,8 @@ public class RegistrationController {
     private final RegistrationService registrationService;
 
     @PostMapping
-    public Integer registerStudent(@RequestBody RegistrationRequest studentRequest) {
-        return registrationService.studentRegister(studentRequest);
+    public void userRegistration(@RequestBody RegistrationRequest request, @RequestParam String role) {
+        registrationService.userRegistration(request, role);
     }
 
 }
